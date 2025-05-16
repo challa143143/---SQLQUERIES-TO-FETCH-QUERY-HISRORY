@@ -1,0 +1,135 @@
+---SQLQUERIES TO FETCH QUERY HISRORY
+
+
+
+----*understanding the query result fetching from local cache /remote cache/ metadata/results cache
+
+
+
+alter warehouse compute_wh suspend;
+
+
+
+select count(*) from "SNOWFLAKE_SAMPLE_DATA"."TPCDS_SF100TCL"."CALL_CENTER";
+
+
+
+select * from "SNOWFLAKE_SAMPLE_DATA"."TPCDS_SF100TCL"."CALL_CENTER";
+
+
+
+
+
+select * from "SNOWFLAKE_SAMPLE_DATA"."TPCDS_SF100TCL"."CALL_CENTER";
+
+
+
+select * 
+
+from "SNOWFLAKE_SAMPLE_DATA"."TPCDS_SF100TCL"."CALL_CENTER"
+
+where CC_CALL_CENTER_SK <=5;
+
+
+
+-- Retrieve up to the last 100 queries run in the current session:
+
+
+
+select *
+
+from table(information_schema.query_history_by_session())
+
+order by start_time;
+
+
+
+select *
+
+from table(information_schema.query_history_by_warehouse())
+
+order by start_time;
+
+
+
+select *
+
+from table(information_schema.query_history_by_user())
+
+order by start_time;
+
+
+
+-- include a condition on username
+
+select *
+
+from table(information_schema.query_history_by_user())
+
+where user_name like 'YASHODARA%'
+
+order by start_time;
+
+
+
+
+
+-- Retrieve up to the last 100 queries run by the current user (or run by any user on any warehouse on which the current user has the MONITOR privilege):
+
+
+
+select *
+
+from table(information_schema.query_history())
+
+
+order by start_time;
+
+
+
+-- Retrieve up to the last 100 queries run in the past hour by the current user 
+
+-- (or run by any user on any warehouse on which the current user has the MONITOR privilege):
+
+
+
+select *
+
+from table(information_schema.query_history(dateadd('hours',-1,current_timestamp()),current_timestamp()))
+
+order by start_time;
+
+
+
+
+
+-- Retrieve all queries run by the current user (or run by any user on any warehouse on which the current user has the MONITOR privilege) 
+
+-- within a specified 30 minute block of time within the past 7 days:
+
+
+
+select *
+
+  from table(information_schema.query_history(
+
+  end_time_range_start=>to_timestamp_ltz('2025-04-30 12:00:00.000 -0700'),
+
+    end_time_range_end=>to_timestamp_ltz('2025-05-06 12:30:00.000 -0700')));
+
+
+
+
+
+-- While working on a complex query, results of previous query comes handy
+
+
+
+select * from "SNOWFLAKE_SAMPLE_DATA"."TPCDS_SF100TCL"."CATALOG_PAGE";
+
+select  cp_Department, cp_catalog_page_sk, cp_Description
+
+    from table(result_scan(last_query_id()))
+
+  where cp_catalog_page_sk < 6;
+
